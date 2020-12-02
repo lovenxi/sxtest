@@ -112,14 +112,14 @@ export default {
   methods: {
     Delete(item) {
       this.$http
-        .post("http://127.0.0.1:8080/delete", "type=flight&flightNum=" + item)
+        .post("/delete", "type=flight&flightNum=" + item)
         .then((res) => {
           this.Refresh();
         });
     },
     Refresh() {
       this.$http
-        .post("http://127.0.0.1:8080/search", "type=flight")
+        .post("/search", "type=flight")
         .then((res) => {
           this.tableContent = res.data;
         });
@@ -131,7 +131,7 @@ export default {
     Insert() {
       this.$http
         .post(
-          "http://127.0.0.1:8080/insert",
+          "/insert",
           "type=flight&flightNum=" +
             this.newflightNum +
             "&price=" +
