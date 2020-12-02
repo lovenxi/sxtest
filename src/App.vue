@@ -27,7 +27,7 @@
     </a-layout>
 
   </a-layout>
-</template>nav 
+</template>
 
 <script>
 export default {
