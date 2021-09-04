@@ -24,18 +24,23 @@
     >
       <a-input
         class="dialog"
-        v-model="newcustID"
-        placeholder="CustID"
+        v-model="newID"
+        placeholder="ID"
       ></a-input>
       <a-input
         class="dialog"
-        v-model="newresvType"
-        placeholder="ResvType"
+        v-model="newStartTime"
+        placeholder="StartTime"
       ></a-input>
       <a-input
         class="dialog"
-        v-model="newresvKey"
-        placeholder="ResvKey"
+        v-model="newEndTime"
+        placeholder="EndTime"
+      ></a-input>
+      <a-input
+        class="dialog"
+        v-model="newContent"
+        placeholder="Content"
       ></a-input>
     </a-modal>
   </div>
@@ -43,25 +48,26 @@
 <script>
 const columns = [
   {
-    title: "CustID",
-    dataIndex: "custID",
-    key: "custID",
-    scopedSlots: { customRender: "name" },
+    title: "PartyID",
+    dataIndex: "PartyID",
+    key: "PartyID",
+    scopedSlots: { customRender: "PartyID" },
+  },
+
+  {
+    title: "StartTime",
+    dataIndex: "StartTime",
+    key: "StartTime",
   },
   {
-    title: "ResvType",
-    dataIndex: "resvType",
-    key: "resvType",
+    title: "EndTime",
+    dataIndex: "EndTime",
+    key: "EndTime",
   },
   {
-    title: "ResvKey",
-    dataIndex: "resvKey",
-    key: "resvKey",
-  },
-  {
-    title: "Action",
-    key: "action",
-    scopedSlots: { customRender: "action" },
+    title: "Content",
+    key: "Content",
+    scopedSlots: { customRender: "Content" },
   },
 ];
 
@@ -101,12 +107,14 @@ export default {
       this.$http
         .post(
           "/resv",
-          "custID=" +
-            this.newcustID +
-            "&resvType=" +
-            this.newresvType +
-            "&resvKey=" +
-            this.newresvKey
+          "PartyID=" +
+            this.newID +
+            "&StartTime=" +
+            this.newStartTime +
+            "&EndTime=" +
+            this.newEndTime +
+            "&Content=" +
+            this.newContent
         )
         .then((res) => {
           if (res.data == "1") {

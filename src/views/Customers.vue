@@ -19,7 +19,7 @@
       <a-input
         class="dialog"
         v-model="newcustID"
-        placeholder="CustID"
+        placeholder="Name"
       ></a-input>
       <a-input class="dialog" v-model="newcustName" placeholder="CustName"></a-input>
     </a-modal>
@@ -28,20 +28,30 @@
 <script>
 const columns = [
   {
-    title: "CustID",
-    dataIndex: "custID",
-    key: "custID",
+    title: "Name",
+    dataIndex: "name",
+    key: "name",
     scopedSlots: { customRender: "name" },
   },
   {
-    title: "CustName",
-    dataIndex: "custName",
-    key: "custName",
+    title: "Phone",
+    dataIndex: "phone",
+    key: "phone",
   },
   {
-    title: "Action",
-    key: "action",
-    scopedSlots: { customRender: "action" },
+    title: "Email",
+    key: "email",
+    scopedSlots: { customRender: "email" },
+  },
+  {
+    title: "IDcard",
+    key: "idcard",
+    scopedSlots: { customRender: "email" },
+  },
+  {
+    title: "Memtype",
+    key: "memtype",
+    scopedSlots: { customRender: "memtype" },
   },
 ];
 

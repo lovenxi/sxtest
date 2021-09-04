@@ -1,19 +1,35 @@
 <template>
   <a-layout id="layout" style="height: 100%">
     <a-layout-sider>
-      <div class="logo">行程预订系统</div>
+      <div class="logo">党务管理系统</div>
       <a-menu theme="dark" mode="inline" :default-selected-keys="['Overview']" @click="Route">
-        <a-menu-item key="Overview">
-          <a-icon type="unordered-list" />
-          <span>总览</span>
-        </a-menu-item>
-        <a-menu-item key="Customers">
+        <a-menu-item key="information">
           <a-icon type="user" />
-          <span>用户列表</span>
+          <span>党支部信息管理</span>
+        </a-menu-item>
+        <a-menu-item key="Member">
+          <a-icon type="user" />
+          <span>党支部成员管理</span>
         </a-menu-item>
         <a-menu-item key="Resvercation">
+          <a-icon type="user" />
+          <span>党支部活动管理</span>
+        </a-menu-item>
+        <a-menu-item key="Developement">
+          <a-icon type="user" />
+          <span>党支部发展管理</span>
+        </a-menu-item>
+        <a-menu-item key="StudyInfo">
           <a-icon type="search" />
-          <span>预订查询</span>
+          <span>网上学习管理</span>
+        </a-menu-item>
+        <a-menu-item key="Bill">
+          <a-icon type="search" />
+          <span>党费管理</span>
+        </a-menu-item>
+        <a-menu-item key="Document">
+          <a-icon type="search" />
+          <span>文档管理</span>
         </a-menu-item>
       </a-menu>
     </a-layout-sider>
@@ -33,7 +49,7 @@
 export default {
   mounted() {
     this.$router.push({
-      path: `/Overview`,
+      path: `/information`,
     })
   },
   methods: {
@@ -45,7 +61,7 @@ export default {
   },
   data() {
     return {
-      current: ['Overview']
+      current: ['information']
     }
   }
 }

@@ -11,16 +11,40 @@ VueRouter.prototype.push = function push(location) {
 export default new VueRouter({
   routes: [
     {
+      path: "/Bill",
+      component: () => import("@/views/Bill.vue")
+    },
+    {
       path: "/Overview",
       component: () => import("@/views/Overview.vue")
     },
     {
+      path: "/Member",
+      component: () => import("@/views/Member.vue")
+    },
+    {
+      path:"/information",
+      component: () => import("@/views/information.vue")
+    },
+    {
+      path: "/Developement",
+      component: () => import("@/views/Developement.vue")
+    },
+    /*{
       path: "/Customers",
       component: () => import("@/views/Customers.vue")
-    },
+    },*/
     {
       path: "/Resvercation",
       component: () => import("@/views/Resvercation.vue")
     },
+    {
+      path: "/StudyInfo",
+      component: () => import("@/views/StudyInfo.vue")
+    },
+    {
+      path:"/Document",
+      component: () => import("@/views/Document.vue")
+    }
   ]
 });
