@@ -153,8 +153,8 @@ export default {
       this.$http.post("/ListActivity").then((res) => {
         if (res.data.code == 0) {
           res.data.result.forEach((item) => {
-            item.start_time = new Date(parseInt(item.start_time) * 1000).toLocaleString().replace(/,.*/, '');
-            item.end_time = new Date(parseInt(item.end_time) * 1000).toLocaleString().replace(/,.*/, '');;
+            item.start_time = new Date(parseInt(item.start_time) * 1000).toLocaleString().match(/[0-9]*\/[0-9]*\/[0-9]*/);
+            item.end_time = new Date(parseInt(item.end_time) * 1000).toLocaleString().match(/[0-9]*\/[0-9]*\/[0-9]*/);
           })
           this.tableContent = res.data.result;
         }
