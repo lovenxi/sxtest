@@ -1,20 +1,48 @@
 <template>
   <div>
-    <a-input-search
+    <!-- <a-input-search
       placeholder="input search text"
       style="width: 200px"
       @search="onSearch"
-    />
-    <a-divider />
+    /> -->
+    <!-- <a-divider /> -->
     <a-table :columns="columns" :data-source="tableContent">
-      <a slot="name" slot-scope="text">{{ text }}</a>
+      <!-- <a slot="name" slot-scope="text">{{ text }}</a> -->
       <span slot="action" slot-scope="text, record">
         <a @click="() => Delete(record)">Delete</a>
       </span>
+      <template
+        v-for="col in ['region', 'email','memtotal']"
+        :slot="col"
+        slot-scope="text, record"
+      >
+        <div :key="col">
+          <a-input
+            v-if="record.editable"
+            style="margin: -5px 0"
+            :value="text"
+            @change="e => handleChange(e.target.value, record.key, col)"
+          />
+          <template v-else>
+            {{ text }}
+          </template>
+        </div>
+      </template>
+      <!-- <template slot="action" slot-scope="text, record">
+        <div class="editable-row-operations">
+          <span v-if="record.editable">
+            <a @click="() => save(record.key)">Save</a>
+            <a-popconfirm title="Sure to cancel?" @confirm="() => cancel(record.key)">
+              <a>Cancel</a>
+            </a-popconfirm>
+          </span>
+          <span v-else>
+            <a :disabled="editingKey !== ''" @click="() => Edit(record.key)">Edit</a>
+          </span>
+        </div>
+      </template> -->
     </a-table>
-    <a-button type="primary" @click="ShowDialog">
-      添加
-    </a-button>
+    <a-button type="primary" @click="ShowDialog"> 添加 </a-button>
     <a-modal
       title="Title"
       :visible="visible"
@@ -22,25 +50,16 @@
       @ok="Insert"
       @cancel="ShowDialog"
     >
-      <a-input
-        class="dialog"
-        v-model="newID"
-        placeholder="ID"
-      ></a-input>
-      <a-input
-        class="dialog"
-        v-model="newStartTime"
-        placeholder="StartTime"
-      ></a-input>
-      <a-input
-        class="dialog"
-        v-model="newEndTime"
-        placeholder="EndTime"
-      ></a-input>
+      <a-range-picker @change="onTimePick" />
       <a-input
         class="dialog"
         v-model="newContent"
-        placeholder="Content"
+        placeholder="内容"
+      ></a-input>      
+      <a-input
+        class="dialog"
+        v-model="newPartyID"
+        placeholder="党支部ID"
       ></a-input>
     </a-modal>
   </div>
@@ -48,26 +67,34 @@
 <script>
 const columns = [
   {
-    title: "PartyID",
-    dataIndex: "PartyID",
-    key: "PartyID",
-    scopedSlots: { customRender: "PartyID" },
-  },
-
-  {
-    title: "StartTime",
-    dataIndex: "StartTime",
-    key: "StartTime",
+    title: "活动ID",
+    dataIndex: "id",
+    scopedSlots: { customRender: "id" },
   },
   {
-    title: "EndTime",
-    dataIndex: "EndTime",
-    key: "EndTime",
+    title: "党支部ID",
+    dataIndex: "party_id",
+    scopedSlots: { customRender: "party_id" },
   },
   {
-    title: "Content",
-    key: "Content",
-    scopedSlots: { customRender: "Content" },
+    title: "开始时间",
+    dataIndex: "start_time",
+    scopedSlots: { customRender: "start_time" },
+  },
+  {
+    title: "结束时间",
+    dataIndex: "end_time",
+    scopedSlots: { customRender: "end_time" },
+  },
+  {
+    title: "内容",
+    dataIndex: "content",
+    scopedSlots: { customRender: "content" },
+  },
+  {
+    title: '操作',
+    key: 'action',
+    scopedSlots: { customRender: 'action' },
   },
 ];
 
@@ -83,54 +110,84 @@ export default {
       visible: false,
       confirmLoading: false,
 
-      newcustID: "",
-      newresvType: "",
-      newresvKey: "",
+      newContent: "",
+      newPartyID: "",
+      newStartTime: "",
+      newEndTime: "",
     };
   },
   methods: {
     Delete(item) {
       this.$http
-        .post("/delete", "type=resv&custID" + item.custID
-        + "&resvType=" + item.resvType
-        + "&resvKey=" + item.resvKey)
+        .post("/DeleteActivity", {
+            id: parseInt(item.id)
+          })
         .then((res) => {
-          this.Refresh();
+          if (parseInt(res.data.code) === 0) {
+            this.$message.success("删除成功");
+            this.Refresh();
+          } else {
+            this.$message.error("删除失败: " + String(res.data.error.msg));
+          }
         });
     },
-    Refresh() {},
+    Edit(item) {
+      this.$http
+        .post("/UpdateActivity", {
+          id: parseInt(item.id),
+          party_id: parseInt(item.party_id),
+          content: item.content,
+          start_time: item.start_time,
+          end_time: item.end_time,
+        })
+        .then((res) => {
+          if (parseInt(res.data.code) === 0) {
+            this.$message.success("修改成功");
+            this.Refresh();
+          } else {
+            this.$message.error("修改失败: " + String(res.data.error.msg));
+          }
+        });
+    },
+    Refresh() {
+      this.$http.post("/ListActivity").then((res) => {
+        if (res.data.code == 0) {
+          res.data.result.forEach((item) => {
+            item.start_time = new Date(parseInt(item.start_time) * 1000).toLocaleString().replace(/,.*/, '');
+            item.end_time = new Date(parseInt(item.end_time) * 1000).toLocaleString().replace(/,.*/, '');;
+          })
+          this.tableContent = res.data.result;
+        }
+      });
+    },
     ShowDialog() {
       this.Clean();
       this.visible = !this.visible;
     },
     Insert() {
       this.$http
-        .post(
-          "/resv",
-          "PartyID=" +
-            this.newID +
-            "&StartTime=" +
-            this.newStartTime +
-            "&EndTime=" +
-            this.newEndTime +
-            "&Content=" +
-            this.newContent
-        )
+        .post("/CreateActivity", {
+          party_id: parseInt(this.newPartyID),
+          content: this.newContent,
+          start_time: parseInt(this.newStartTime),
+          end_time: parseInt(this.newEndTime)
+        })
         .then((res) => {
-          if (res.data == "1") {
+          if (parseInt(res.data.code) === 0) {
             this.$message.success("添加成功");
             this.Refresh();
             this.ShowDialog();
           } else {
-            this.$message.error("添加失败");
+            this.$message.error("添加失败: " + String(res.data.error.msg));
             this.Clean();
           }
         });
     },
     Clean() {
-        this.newcustID = "";
-        this.newresvType = "";
-        this.newresvKey = "";
+        this.newContent = "";
+        this.newPartyID = 0;
+        this.newStartTime = "";
+        this.newEndTime = "";
     },
     onSearch(value) {
       console.log("type=resv" + "&custId=" + value)
@@ -140,6 +197,11 @@ export default {
           this.tableContent = res.data;
         });
     },
+    onTimePick(date, dateString) {
+      this.newStartTime = parseInt(Date.parse(date[0])) / 1000;
+      this.newEndTime = parseInt(Date.parse(date[1])) / 1000;
+      console.log(this.newStartTime, this.newEndTime);
+    }
   },
 };
 </script>
