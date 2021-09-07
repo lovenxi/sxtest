@@ -1,226 +1,219 @@
 <template>
-  <a-table :data-source="data" :columns="columns">
-    <div
-      slot="filterDropdown"
-      slot-scope="{ setSelectedKeys, selectedKeys, confirm, clearFilters, column }"
-      style="padding: 8px"
+  <div>
+    <!-- <a-input-search
+      placeholder="input search text"
+      style="width: 200px"
+      @search="onSearch"
+    /> -->
+    <!-- <a-divider /> -->
+    <a-statistic title="现有余额" v-model="NowBalance" style="margin-right: 50px" />
+    <a-table :columns="columns" :data-source="tableContent">
+      <!-- <a slot="name" slot-scope="text">{{ text }}</a> -->
+      <!--<span slot="action" slot-scope="text, record">
+        <a @click="() => Delete(record)">Delete</a>
+      </span>-->
+      <template
+        v-for="col in ['region', 'email','memtotal']"
+        :slot="col"
+        slot-scope="text, record"
+      >
+        <div :key="col">
+          <a-input
+            v-if="record.editable"
+            style="margin: -5px 0"
+            :value="text"
+            @change="e => handleChange(e.target.value, record.key, col)"
+          />
+          <template v-else>
+            {{ text }}
+          </template>
+        </div>
+      </template>
+      <!-- <template slot="action" slot-scope="text, record">
+        <div class="editable-row-operations">
+          <span v-if="record.editable">
+            <a @click="() => save(record.key)">Save</a>
+            <a-popconfirm title="Sure to cancel?" @confirm="() => cancel(record.key)">
+              <a>Cancel</a>
+            </a-popconfirm>
+          </span>
+          <span v-else>
+            <a :disabled="editingKey !== ''" @click="() => Edit(record.key)">Edit</a>
+          </span>
+        </div>
+      </template> -->
+    </a-table>
+    <a-button type="primary" @click="ShowDialog"> 添加 </a-button>
+    <a-modal
+      title="Title"
+      :visible="visible"
+      :confirm-loading="confirmLoading"
+      @ok="Insert"
+      @cancel="ShowDialog"
     >
       <a-input
-        v-ant-ref="c => (searchInput = c)"
-        :placeholder="`Search ${column.dataIndex}`"
-        :value="selectedKeys[0]"
-        style="width: 188px; margin-bottom: 8px; display: block;"
-        @change="e => setSelectedKeys(e.target.value ? [e.target.value] : [])"
-        @pressEnter="() => handleSearch(selectedKeys, confirm, column.dataIndex)"
-      />
-      <a-button
-        type="primary"
-        icon="search"
-        size="small"
-        style="width: 90px; margin-right: 8px"
-        @click="() => handleSearch(selectedKeys, confirm, column.dataIndex)"
-      >
-        Search
-      </a-button>
-      <a-button size="small" style="width: 90px" @click="() => handleReset(clearFilters)">
-        Reset
-      </a-button>
-    </div>
-    <a-icon
-      slot="filterIcon"
-      slot-scope="filtered"
-      type="search"
-      :style="{ color: filtered ? '#108ee9' : undefined }"
-    />
-    <template slot="customRender" slot-scope="text, record, index, column">
-      <span v-if="searchText && searchedColumn === column.dataIndex">
-        <template
-          v-for="(fragment, i) in text
-            .toString()
-            .split(new RegExp(`(?<=${searchText})|(?=${searchText})`, 'i'))"
-        >
-          <mark
-            v-if="fragment.toLowerCase() === searchText.toLowerCase()"
-            :key="i"
-            class="highlight"
-            >{{ fragment }}</mark
-          >
-          <template v-else>{{ fragment }}</template>
-        </template>
-      </span>
-      <template v-else>
-        {{ text }}
-      </template>
-    </template>
-  </a-table>
+        class="dialog"
+        v-model="newMemID"
+        placeholder="成员ID"
+      ></a-input>      
+      <a-input
+        class="dialog"
+        v-model="newContent"
+        placeholder="内容"
+      ></a-input>
+      <a-row>
+      <a-col :span="12">
+        <a-slider v-model="newCost" :min="-100" :max="100" />
+      </a-col>
+      <a-col :span="4">
+        <a-input-number v-model="newCost" :min="-100" :max="100" style="marginLeft: 16px" />
+      </a-col>
+    </a-row>
+    </a-modal>
+  </div>
 </template>
-
 <script>
-const data = [
+const columns = [
   {
-    key: '1',
-    name: 'John Brown',
-    age: 32,
-    address: 'New York No. 1 Lake Park',
+    title: "账单ID",
+    dataIndex: "id",
+    scopedSlots: { customRender: "id" },
   },
   {
-    key: '2',
-    name: 'Joe Black',
-    age: 42,
-    address: 'London No. 1 Lake Park',
+    title: "成员ID",
+    dataIndex: "member_id",
+    scopedSlots: { customRender: "member_id" },
   },
   {
-    key: '3',
-    name: 'Jim Green',
-    age: 32,
-    address: 'Sidney No. 1 Lake Park',
+    title: "内容",
+    dataIndex: "content",
+    scopedSlots: { customRender: "content" },
   },
   {
-    key: '4',
-    name: 'Jim Red',
-    age: 32,
-    address: 'London No. 2 Lake Park',
+    title: "花费",
+    dataIndex: "cost",
+    scopedSlots: { customRender: "cost" },
+  },
+  {
+    title: "处理时间",
+    dataIndex: "deal_time",
+    scopedSlots: { customRender: "deal_time" },
   },
 ];
 
 export default {
+  beforeMount() {
+    this.Refresh();
+  },
   data() {
     return {
-      data,
-      searchText: '',
-      searchInput: null,
-      searchedColumn: '',
-      columns: [
-        {
-          title: 'MemID',
-          dataIndex: 'MemID',
-          key: 'MemID',
-          scopedSlots: {
-            filterDropdown: 'filterDropdown',
-            filterIcon: 'filterIcon',
-            customRender: 'customRender',
-          },
-          onFilter: (value, record) =>
-            record.name
-              .toString()
-              .toLowerCase()
-              .includes(value.toLowerCase()),
-          onFilterDropdownVisibleChange: visible => {
-            if (visible) {
-              setTimeout(() => {
-                this.searchInput.focus();
-              }, 0);
-            }
-          },
-        },
-        {
-          title: 'Content',
-          dataIndex: 'Content',
-          key: 'Content',
-          scopedSlots: {
-            filterDropdown: 'filterDropdown',
-            filterIcon: 'filterIcon',
-            customRender: 'customRender',
-          },
-          onFilter: (value, record) =>
-            record.age
-              .toString()
-              .toLowerCase()
-              .includes(value.toLowerCase()),
-          onFilterDropdownVisibleChange: visible => {
-            if (visible) {
-              setTimeout(() => {
-                this.searchInput.focus();
-              });
-            }
-          },
-        },
-        {
-          title: 'Cost',
-          dataIndex: 'Cost',
-          key: 'Cost',
-          scopedSlots: {
-            filterDropdown: 'filterDropdown',
-            filterIcon: 'filterIcon',
-            customRender: 'customRender',
-          },
-          onFilter: (value, record) =>
-            record.address
-              .toString()
-              .toLowerCase()
-              .includes(value.toLowerCase()),
-          onFilterDropdownVisibleChange: visible => {
-            if (visible) {
-              setTimeout(() => {
-                this.searchInput.focus();
-              });
-            }
-          },
-        },
-        {
-          title: 'DealTime',
-          dataIndex: 'DealTime',
-          key: 'DealTime',
-          scopedSlots: {
-            filterDropdown: 'filterDropdown',
-            filterIcon: 'filterIcon',
-            customRender: 'customRender',
-          },
-          onFilter: (value, record) =>
-            record.address
-              .toString()
-              .toLowerCase()
-              .includes(value.toLowerCase()),
-          onFilterDropdownVisibleChange: visible => {
-            if (visible) {
-              setTimeout(() => {
-                this.searchInput.focus();
-              });
-            }
-          },
-        },
-        {
-          title: 'NowBalance',
-          dataIndex: 'NowBalance',
-          key: 'NowBalance',
-          scopedSlots: {
-            filterDropdown: 'filterDropdown',
-            filterIcon: 'filterIcon',
-            customRender: 'customRender',
-          },
-          onFilter: (value, record) =>
-            record.address
-              .toString()
-              .toLowerCase()
-              .includes(value.toLowerCase()),
-          onFilterDropdownVisibleChange: visible => {
-            if (visible) {
-              setTimeout(() => {
-                this.searchInput.focus();
-              });
-            }
-          },
-        },
-      ],
+      tableContent: [],
+      columns,
+
+      inputValue: 0,
+     // inputValue1: 1,
+
+      visible: false,
+      confirmLoading: false,
+
+      newMemID: "",
+      newContent: "",
+      newCost: "",
+      NowBalance:""
     };
   },
   methods: {
-    handleSearch(selectedKeys, confirm, dataIndex) {
-      confirm();
-      this.searchText = selectedKeys[0];
-      this.searchedColumn = dataIndex;
+    /*Delete(item) {
+      this.$http
+        .post("/DeleteActivity", {
+            id: parseInt(item.id)
+          })
+        .then((res) => {
+          if (parseInt(res.data.code) === 0) {
+            this.$message.success("删除成功");
+            this.Refresh();
+          } else {
+            this.$message.error("删除失败: " + String(res.data.error.msg));
+          }
+        });
     },
-
-    handleReset(clearFilters) {
-      clearFilters();
-      this.searchText = '';
+    Edit(item) {
+      this.$http
+        .post("/UpdateActivity", {
+          id: parseInt(item.id),
+          party_id: parseInt(item.party_id),
+          content: item.content,
+          start_time: item.start_time,
+          end_time: item.end_time,
+        })
+        .then((res) => {
+          if (parseInt(res.data.code) === 0) {
+            this.$message.success("修改成功");
+            this.Refresh();
+          } else {
+            this.$message.error("修改失败: " + String(res.data.error.msg));
+          }
+        });
+    },*/
+    Refresh() {
+      this.$http.post("/ListBill").then((res) => {
+        if (res.data.code == 0) {
+          this.tableContent = res.data.result;
+        }
+      });
+      this.$http.post("/GetNowBalance").then((res) =>{
+        console.log(res);
+        if (res.data.code == 0) {
+          this.NowBalance = res.data.result.balance;
+        }
+      })
     },
+    ShowDialog() {
+      this.Clean();
+      this.visible = !this.visible;
+    },
+    Insert() {
+      this.$http
+        .post("/CreateBill", {
+          member_id: parseInt(this.newMemID),
+          content: this.newContent,
+          cost: parseInt(this.newCost)
+        })
+        .then((res) => {
+          if (parseInt(res.data.code) === 0) {
+            this.$message.success("添加成功");
+            this.Refresh();
+            this.ShowDialog();
+          } else {
+            this.$message.error("添加失败: " + String(res.data.error.msg));
+            this.Clean();
+          }
+        });
+    },
+    Clean() {
+        this.newMemID = "";
+        this.newContent = "";
+        this.newCost = ""
+    },
+   /* onSearch(value) {
+      console.log("type=resv" + "&custId=" + value)
+      this.$http
+        .post("/search", "type=resv" + "&custID=" + value)
+        .then((res) => {
+          this.tableContent = res.data;
+        });
+    },*/
+    onTimePick(date, dateString) {
+      this.newStartTime = parseInt(Date.parse(date[0])) / 1000;
+      this.newEndTime = parseInt(Date.parse(date[1])) / 1000;
+      console.log(this.newStartTime, this.newEndTime);
+    }
   },
 };
 </script>
+
 <style scoped>
-.highlight {
-  background-color: rgb(255, 192, 105);
-  padding: 0px;
+a-modal a-input {
+  padding-bottom: 10px;
 }
 </style>
