@@ -9,7 +9,7 @@
     <a-table :columns="columns" :data-source="tableContent">
       <!-- <a slot="name" slot-scope="text">{{ text }}</a> -->
       <span slot="action" slot-scope="text, record">
-        <a @click="() => Delete(record)">Delete</a>
+        <a @click="() => Delete(record)">删除</a>
       </span>
       <template
         v-for="col in ['region', 'email','memtotal']"
