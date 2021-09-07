@@ -6,12 +6,13 @@
       @search="onSearch"
     /> -->
     <!-- <a-divider /> -->
-    <a-statistic title="现有余额" v-model="NowBalance" style="margin-right: 50px" />
+    <a-statistic title="现有余额" v-model="NowBalance"  />
+    <a-divider />
     <a-table :columns="columns" :data-source="tableContent">
       <!-- <a slot="name" slot-scope="text">{{ text }}</a> -->
-      <!--<span slot="action" slot-scope="text, record">
-        <a @click="() => Delete(record)">Delete</a>
-      </span>-->
+      <span slot="action" slot-scope="text, record">
+        <a @click="() => Rollback(record)">回滚</a>
+      </span>
       <template
         v-for="col in ['region', 'email','memtotal']"
         :slot="col"
@@ -99,6 +100,11 @@ const columns = [
     dataIndex: "deal_time",
     scopedSlots: { customRender: "deal_time" },
   },
+  {
+    title: '操作',
+    key: 'action',
+    scopedSlots: { customRender: 'action' },
+  },
 ];
 
 export default {
@@ -123,21 +129,21 @@ export default {
     };
   },
   methods: {
-    /*Delete(item) {
+    Rollback(item) {
       this.$http
-        .post("/DeleteActivity", {
+        .post("/RollbackBill", {
             id: parseInt(item.id)
           })
         .then((res) => {
           if (parseInt(res.data.code) === 0) {
-            this.$message.success("删除成功");
+            this.$message.success("回滚成功");
             this.Refresh();
           } else {
-            this.$message.error("删除失败: " + String(res.data.error.msg));
+            this.$message.error("回滚失败: " + String(res.data.error.msg));
           }
         });
     },
-    Edit(item) {
+    /*Edit(item) {
       this.$http
         .post("/UpdateActivity", {
           id: parseInt(item.id),
