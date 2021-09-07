@@ -11,7 +11,7 @@
         </a-tag>
       </span>
       <span slot="action" slot-scope="text, record">
-        <a @click="() => SetBindInfo1(record)">升级</a>
+        <a @click="() => SetBindInfo1(record)" disable>升级</a>
         <a-divider type="vertical" />
         <a @click="() => SetBindInfo2(record)">降级</a>
       </span>
@@ -33,7 +33,7 @@
       title="绑定党支部"
       :visible="party_visible2"
       :confirm-loading="party_confirmLoading2"
-      @ok="Down"
+      @ok="Down"  
       @cancel="ShowPartyDialog2"
     >
       <a-input

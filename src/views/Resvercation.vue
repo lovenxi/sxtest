@@ -1,15 +1,11 @@
 <template>
-  <div>
-    <!-- <a-input-search
-      placeholder="input search text"
-      style="width: 200px"
-      @search="onSearch"
-    /> -->
-    <!-- <a-divider /> -->
+<div>
+  <div v-if="!detailShow">
     <a-table :columns="columns" :data-source="tableContent">
-      <!-- <a slot="name" slot-scope="text">{{ text }}</a> -->
       <span slot="action" slot-scope="text, record">
-        <a @click="() => Delete(record)">Delete</a>
+        <a @click="() => Delete(record)">删除</a>
+        <a-divider type="vertical" />
+        <a @click="() => ShowDetail(record)">详情</a>
       </span>
       <template
         v-for="col in ['region', 'email','memtotal']"
@@ -28,19 +24,6 @@
           </template>
         </div>
       </template>
-      <!-- <template slot="action" slot-scope="text, record">
-        <div class="editable-row-operations">
-          <span v-if="record.editable">
-            <a @click="() => save(record.key)">Save</a>
-            <a-popconfirm title="Sure to cancel?" @confirm="() => cancel(record.key)">
-              <a>Cancel</a>
-            </a-popconfirm>
-          </span>
-          <span v-else>
-            <a :disabled="editingKey !== ''" @click="() => Edit(record.key)">Edit</a>
-          </span>
-        </div>
-      </template> -->
     </a-table>
     <a-button type="primary" @click="ShowDialog"> 添加 </a-button>
     <a-modal
@@ -63,6 +46,12 @@
       ></a-input>
     </a-modal>
   </div>
+  <div v-else>
+    <a-button @click="HideDetail"> 返回 </a-button>
+    <a-divider></a-divider>
+    <activity :act="showAct"></activity>
+  </div>
+</div>
 </template>
 <script>
 const columns = [
@@ -98,6 +87,8 @@ const columns = [
   },
 ];
 
+import Activity from "../components/Activity.vue";
+
 export default {
   beforeMount() {
     this.Refresh();
@@ -109,6 +100,9 @@ export default {
 
       visible: false,
       confirmLoading: false,
+
+      detailShow: false,
+      showAct: "",
 
       newContent: "",
       newPartyID: "",
@@ -128,24 +122,6 @@ export default {
             this.Refresh();
           } else {
             this.$message.error("删除失败: " + String(res.data.error.msg));
-          }
-        });
-    },
-    Edit(item) {
-      this.$http
-        .post("/UpdateActivity", {
-          id: parseInt(item.id),
-          party_id: parseInt(item.party_id),
-          content: item.content,
-          start_time: item.start_time,
-          end_time: item.end_time,
-        })
-        .then((res) => {
-          if (parseInt(res.data.code) === 0) {
-            this.$message.success("修改成功");
-            this.Refresh();
-          } else {
-            this.$message.error("修改失败: " + String(res.data.error.msg));
           }
         });
     },
@@ -185,17 +161,16 @@ export default {
     },
     Clean() {
         this.newContent = "";
-        this.newPartyID = 0;
+        this.newPartyID = "";
         this.newStartTime = "";
         this.newEndTime = "";
     },
-    onSearch(value) {
-      console.log("type=resv" + "&custId=" + value)
-      this.$http
-        .post("/search", "type=resv" + "&custID=" + value)
-        .then((res) => {
-          this.tableContent = res.data;
-        });
+    ShowDetail(item) {
+      this.showAct = item;
+      this.detailShow = true;
+    },
+    HideDetail() {
+      this.detailShow = false;
     },
     onTimePick(date, dateString) {
       this.newStartTime = parseInt(Date.parse(date[0])) / 1000;
@@ -203,6 +178,9 @@ export default {
       console.log(this.newStartTime, this.newEndTime);
     }
   },
+  components: {
+    Activity,
+  }
 };
 </script>
 
