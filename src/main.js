@@ -8,9 +8,9 @@ import axios from 'axios';
 
 Vue.prototype.$http = axios.create({
   headers: {"Content-Type": "application/json"},
-  baseURL: "http://127.0.0.1:8081/api/v1",
+  baseURL: "http://192.168.43.213:8081/api/v1",
   proxy: {
-    host: "127.0.0.1",
+    host: "192.168.43.213",
     port: "8081",
   }
 }),

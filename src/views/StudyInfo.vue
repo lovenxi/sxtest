@@ -1,134 +1,213 @@
 <template>
-  <a-table :columns="columns" :data-source="data" bordered>
-    <template
-      v-for="col in ['Title', 'Content', 'StartTime','EndTime']"
-      :slot="col"
-      slot-scope="text, record, index"
+  <div>
+    <!-- <a-input-search
+      placeholder="input search text"
+      style="width: 200px"
+      @search="onSearch"
+    /> -->
+    <!-- <a-divider /> -->
+    <a-table :columns="columns" :data-source="tableContent">
+      <!-- <a slot="name" slot-scope="text">{{ text }}</a> -->
+      <span slot="action" slot-scope="text, record">
+        <a @click="() => Delete(record)">Delete</a>
+      </span>
+      <template
+        v-for="col in ['region', 'email','memtotal']"
+        :slot="col"
+        slot-scope="text, record"
+      >
+        <div :key="col">
+          <a-input
+            v-if="record.editable"
+            style="margin: -5px 0"
+            :value="text"
+            @change="e => handleChange(e.target.value, record.key, col)"
+          />
+          <template v-else>
+            {{ text }}
+          </template>
+        </div>
+      </template>
+      <!-- <template slot="action" slot-scope="text, record">
+        <div class="editable-row-operations">
+          <span v-if="record.editable">
+            <a @click="() => save(record.key)">Save</a>
+            <a-popconfirm title="Sure to cancel?" @confirm="() => cancel(record.key)">
+              <a>Cancel</a>
+            </a-popconfirm>
+          </span>
+          <span v-else>
+            <a :disabled="editingKey !== ''" @click="() => Edit(record.key)">Edit</a>
+          </span>
+        </div>
+      </template> -->
+    </a-table>
+    <a-button type="primary" @click="ShowDialog"> 添加 </a-button>
+    <a-modal
+      title="Title"
+      :visible="visible"
+      :confirm-loading="confirmLoading"
+      @ok="Insert"
+      @cancel="ShowDialog"
     >
-      <div :key="col">
-        <a-input
-          v-if="record.editable"
-          style="margin: -5px 0"
-          :value="text"
-          @change="e => handleChange(e.target.value, record.key, col)"
-        />
-        <template v-else>
-          {{ text }}
-        </template>
-      </div>
-    </template>
-    <template slot="operation" slot-scope="text, record, index">
-      <div class="editable-row-operations">
-        <span v-if="record.editable">
-          <a @click="() => save(record.key)">Save</a>
-          <a-popconfirm title="Sure to cancel?" @confirm="() => cancel(record.key)">
-            <a>Cancel</a>
-          </a-popconfirm>
-        </span>
-        <span v-else>
-          <a :disabled="editingKey !== ''" @click="() => edit(record.key)">Edit</a>
-        </span>
-      </div>
-    </template>
-  </a-table>
+      <a-range-picker @change="onTimePick" />
+      <a-input
+        class="dialog"
+        v-model="newTitle"
+        placeholder="标题"
+      ></a-input>      
+      <a-input
+        class="dialog"
+        v-model="newContent"
+        placeholder="学习内容"
+      ></a-input>
+    </a-modal>
+  </div>
 </template>
 <script>
 const columns = [
   {
-    title: 'Title',
-    dataIndex: 'Title',
-    width: '23%',
-    scopedSlots: { customRender: 'Title' },
+    title: "ID",
+    dataIndex: "id",
+    scopedSlots: { customRender: "id" },
   },
   {
-    title: 'Content',
-    dataIndex: 'Content',
-    width: '23%',
-    scopedSlots: { customRender: 'Content' },
+    title: "标题",
+    dataIndex: "title",
+    scopedSlots: { customRender: "title" },
   },
   {
-    title: 'StartTime',
-    dataIndex: 'StartTime',
-    width: '23%',
-    scopedSlots: { customRender: 'StartTime' },
+    title: "学习内容",
+    dataIndex: "content",
+    scopedSlots: { customRender: "content" },
   },
   {
-    title: 'EndTime',
-    dataIndex: 'EndTime',
-    width: '23%',
-    scopedSlots: { customRender: 'EndTime' },
+    title: "开始时间",
+    dataIndex: "start_time",
+    scopedSlots: { customRender: "start_time" },
   },
   {
-    title: 'operation',
-    dataIndex: 'operation',
-    scopedSlots: { customRender: 'operation' },
+    title: "结束时间",
+    dataIndex: "end_time",
+    scopedSlots: { customRender: "end_time" },
+  },
+  {
+    title: '操作',
+    key: 'action',
+    scopedSlots: { customRender: 'action' },
   },
 ];
 
-const data = [];
-for (let i = 0; i < 100; i++) {
-  data.push({
-    key: i.toString(),
-    name: `Edrward ${i}`,
-    age: 32,
-    address: `London Park no. ${i}`,
-  });
-}
 export default {
+  beforeMount() {
+    this.Refresh();
+  },
   data() {
-    this.cacheData = data.map(item => ({ ...item }));
     return {
-      data,
+      tableContent: [],
       columns,
-      editingKey: '',
+
+      visible: false,
+      confirmLoading: false,
+
+      newTitle:"",
+      newContent: "",
+      newStartTime: "",
+      newEndTime: "",
     };
   },
   methods: {
-    handleChange(value, key, column) {
-      const newData = [...this.data];
-      const target = newData.filter(item => key === item.key)[0];
-      if (target) {
-        target[column] = value;
-        this.data = newData;
-      }
+    Delete(item) {
+      this.$http
+        .post("/DeleteStudy", {
+            id: parseInt(item.id)
+          })
+        .then((res) => {
+          if (parseInt(res.data.code) === 0) {
+            this.$message.success("删除成功");
+            this.Refresh();
+          } else {
+            this.$message.error("删除失败: " + String(res.data.error.msg));
+          }
+        });
     },
-    edit(key) {
-      const newData = [...this.data];
-      const target = newData.filter(item => key === item.key)[0];
-      this.editingKey = key;
-      if (target) {
-        target.editable = true;
-        this.data = newData;
-      }
+    /*Edit(item) {
+      this.$http
+        .post("/UpdateActivity", {
+          id: parseInt(item.id),
+          party_id: parseInt(item.party_id),
+          content: item.content,
+          start_time: item.start_time,
+          end_time: item.end_time,
+        })
+        .then((res) => {
+          if (parseInt(res.data.code) === 0) {
+            this.$message.success("修改成功");
+            this.Refresh();
+          } else {
+            this.$message.error("修改失败: " + String(res.data.error.msg));
+          }
+        });
+    },*/
+    Refresh() {
+      this.$http.post("/ListStudy").then((res) => {
+        if (res.data.code == 0) {
+          res.data.result.forEach((item) => {
+            item.start_time = new Date(parseInt(item.start_time) * 1000).toLocaleString().match(/[0-9]*\/[0-9]*\/[0-9]*/);
+            item.end_time = new Date(parseInt(item.end_time) * 1000).toLocaleString().match(/[0-9]*\/[0-9]*\/[0-9]*/);
+          })
+          this.tableContent = res.data.result;
+        }
+      });
     },
-    save(key) {
-      const newData = [...this.data];
-      const newCacheData = [...this.cacheData];
-      const target = newData.filter(item => key === item.key)[0];
-      const targetCache = newCacheData.filter(item => key === item.key)[0];
-      if (target && targetCache) {
-        delete target.editable;
-        this.data = newData;
-        Object.assign(targetCache, target);
-        this.cacheData = newCacheData;
-      }
-      this.editingKey = '';
+    ShowDialog() {
+      this.Clean();
+      this.visible = !this.visible;
     },
-    cancel(key) {
-      const newData = [...this.data];
-      const target = newData.filter(item => key === item.key)[0];
-      this.editingKey = '';
-      if (target) {
-        Object.assign(target, this.cacheData.filter(item => key === item.key)[0]);
-        delete target.editable;
-        this.data = newData;
-      }
+    Insert() {
+      this.$http
+        .post("/CreateStudy", {
+          title: this.newTitle,
+          content: this.newContent,
+          start_time: this.newStartTime,
+          end_time: this.newEndTime
+        })
+        .then((res) => {
+          if (parseInt(res.data.code) === 0) {
+            this.$message.success("添加成功");
+            this.Refresh();
+            this.ShowDialog();
+          } else {
+            this.$message.error("添加失败: " + String(res.data.error.msg));
+            this.Clean();
+          }
+        });
     },
+    Clean() {
+        this.newTitle = "";
+        this.newContent = "";
+        this.newStartTime = "";
+        this.newEndTime = "";
+    },
+    onSearch(value) {
+      console.log("type=resv" + "&custId=" + value)
+      this.$http
+        .post("/search", "type=resv" + "&custID=" + value)
+        .then((res) => {
+          this.tableContent = res.data;
+        });
+    },
+    onTimePick(date, dateString) {
+      this.newStartTime = parseInt(Date.parse(date[0])) / 1000;
+      this.newEndTime = parseInt(Date.parse(date[1])) / 1000;
+      console.log(this.newStartTime, this.newEndTime);
+    }
   },
 };
 </script>
+
 <style scoped>
-.editable-row-operations a {
-  margin-right: 8px;
+a-modal a-input {
+  padding-bottom: 10px;
 }
 </style>
