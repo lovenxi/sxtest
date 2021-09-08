@@ -143,27 +143,12 @@ export default {
           }
         });
     },
-    /*Edit(item) {
-      this.$http
-        .post("/UpdateActivity", {
-          id: parseInt(item.id),
-          party_id: parseInt(item.party_id),
-          content: item.content,
-          start_time: item.start_time,
-          end_time: item.end_time,
-        })
-        .then((res) => {
-          if (parseInt(res.data.code) === 0) {
-            this.$message.success("修改成功");
-            this.Refresh();
-          } else {
-            this.$message.error("修改失败: " + String(res.data.error.msg));
-          }
-        });
-    },*/
     Refresh() {
       this.$http.post("/ListBill").then((res) => {
         if (res.data.code == 0) {
+          res.data.result.forEach((item) => {
+            item.deal_time = new Date(parseInt(item.deal_time) * 1000).toLocaleString().match(/[0-9]*\/[0-9]*\/[0-9]*/);
+          })
           this.tableContent = res.data.result;
         }
       });

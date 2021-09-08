@@ -43,6 +43,10 @@ export default new VueRouter({
       component: () => import("@/views/StudyInfo.vue")
     },
     {
+      path: "/MemberInfo",
+      component: () => import("@/views/MemberInfo.vue")
+    },
+    {
       path:"/Document",
       component: () => import("@/views/Document.vue")
     }

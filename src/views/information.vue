@@ -1,13 +1,6 @@
 <template>
   <div>
-    <!-- <a-input-search
-      placeholder="input search text"
-      style="width: 200px"
-      @search="onSearch"
-    /> -->
-    <!-- <a-divider /> -->
     <a-table :columns="columns" :data-source="tableContent">
-      <!-- <a slot="name" slot-scope="text">{{ text }}</a> -->
       <span slot="action" slot-scope="text, record">
         <a @click="() => Delete(record)">删除</a>
       </span>
@@ -28,19 +21,6 @@
           </template>
         </div>
       </template>
-      <!-- <template slot="action" slot-scope="text, record">
-        <div class="editable-row-operations">
-          <span v-if="record.editable">
-            <a @click="() => save(record.key)">Save</a>
-            <a-popconfirm title="Sure to cancel?" @confirm="() => cancel(record.key)">
-              <a>Cancel</a>
-            </a-popconfirm>
-          </span>
-          <span v-else>
-            <a :disabled="editingKey !== ''" @click="() => Edit(record.key)">Edit</a>
-          </span>
-        </div>
-      </template> -->
     </a-table>
     <a-button type="primary" @click="ShowDialog"> 添加 </a-button>
     <a-modal

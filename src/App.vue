@@ -15,10 +15,6 @@
           <a-icon type="user" />
           <span>党支部活动管理</span>
         </a-menu-item>
-        <a-menu-item key="Developement">
-          <a-icon type="user" />
-          <span>党支部发展管理</span>
-        </a-menu-item>
         <a-menu-item key="StudyInfo">
           <a-icon type="search" />
           <span>网上学习管理</span>
@@ -30,6 +26,10 @@
         <a-menu-item key="Document">
           <a-icon type="search" />
           <span>文档管理</span>
+        </a-menu-item>
+        <a-menu-item key="MemberInfo">
+          <a-icon type="search" />
+          <span>个人信息</span>
         </a-menu-item>
       </a-menu>
     </a-layout-sider>
