@@ -1,17 +1,17 @@
 <template>
 <div>
-  <a-descriptions :title="act.content">
+  <a-descriptions :title="activity.content">
     <a-descriptions-item label="活动ID">
-      {{ act.id }}
+      {{ activity.id }}
     </a-descriptions-item>
     <a-descriptions-item label="所属党支部">
-      {{ act.party_id }}
+      {{ activity.party_id }}
     </a-descriptions-item>
     <a-descriptions-item label="开始时间">
-      {{ act.start_time[0] }}
+      {{ activity.start_time[0] }}
     </a-descriptions-item>
     <a-descriptions-item label="结束时间">
-      {{ act.end_time[0] }}
+      {{ activity.end_time[0] }}
     </a-descriptions-item>
   </a-descriptions>
   <a-divider></a-divider>
